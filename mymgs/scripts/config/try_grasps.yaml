@@ -1,0 +1,14 @@
+# Copyright (c) 2025 Robert Bosch GmbH
+# SPDX-License-Identifier: AGPL-3.0
+
+defaults:
+  - _self_
+  - gripper: robotiq_2f_85
+
+grasp_id: 2
+
+object_id: "011_banana"
+
+hydra:
+  job:
+    chdir: False

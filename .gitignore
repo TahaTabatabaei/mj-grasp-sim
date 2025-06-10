@@ -145,6 +145,5 @@ dmypy.json
 # custom
 asset/mj-objects/*
 mymgs/MGS_OUTPUT_DIR/
-mymgs/MGS_INTPUT_DIR/
+mymgs/MGS_INPUT_DIR/
 mymgs/robotiq_2f_85-default
-mymgs/scripts/config

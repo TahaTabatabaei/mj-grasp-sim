@@ -28,6 +28,13 @@ from mgs.util.geo.transforms import SE3Pose
 
 XML = r"""
 <mujoco>
+
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1=".5 .5 .5" rgb2="0 0 0" width="10" height="10"/>
+        <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="1 1 1" rgb2="1 1 1" markrgb="0 0 0" width="300" height="300"/>
+        <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.3"/>
+    </asset>
+
     <compiler angle="radian" autolimits="true" />
     <option integrator="implicitfast" timestep="0.001"/>
     <compiler discardvisual="false"/>
@@ -37,11 +44,14 @@ XML = r"""
     <option gravity="0 0 0" />
     {gripper}
     <worldbody>
-        <light name="light:top" pos="0 0 0.3"/>
-        <light name="light:right" pos="0.3 0 0"/>
-        <light name="light:left" pos="-0.3 0 0"/>
-        <body name="body:ground" pos="0.0 0 -1.0">
-           <geom name="geom:ground" pos="0 0 0" rgba="1.0 1.0 1.0 0.0" size="1.0 1.0 0.02" type="box" density="500"/>
+        <light name="light:top" pos="0 0 0.3" ambient="0.7 0.7 0.7"/>
+        <light name="light:right" pos="0.3 0 0" ambient="0.7 0.7 0.7"/>
+        <light name="light:left" pos="-0.3 0 0" ambient="0.7 0.7 0.7"/>
+        <light name="light:bottom" pos="0 0 -0.3" ambient="0.7 0.7 0.7"/>
+        <light name="light:front" pos="0 0.3 0" ambient="0.7 0.7 0.7"/>
+        <light name="light:back" pos="0 -0.3 0" ambient="0.7 0.7 0.7"/>
+        <body name="body:ground" pos="0.0 0 -0.5">
+           <geom name="geom:ground" pos="0 0 0" material="groundplane" rgba="0.5 0.5 0.5 0.5" size="1.0 1.0 0.02" type="box" density="500"/>
         </body>
     </worldbody>
     {object}
