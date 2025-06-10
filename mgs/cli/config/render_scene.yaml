@@ -3,7 +3,7 @@
 
 defaults:
   - _self_
-  - env: bin_picking
+  - env: clutter_table
   - gripper: google
 
 num_images: 10

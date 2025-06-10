@@ -75,8 +75,10 @@ def gen(cfg: DictConfig, scene_def):
 
     valid_grasps = []
     for obj_name, obj_id in zip(env.object_names, env.object_ids):
+        print(f'{obj_id}-hi20')
         is_graspable_res = is_graspable(cfg.gripper, obj_id, eta=cfg.gripper.eta)
         if not is_graspable_res:
+            print(f'{obj_id}-hi21')
             continue
         grasps = get_grasps(
             gripper_name=cfg.gripper.id,
@@ -84,6 +86,7 @@ def gen(cfg: DictConfig, scene_def):
             obj_id=obj_id,
         )
         if grasps is None:
+            print(f'{obj_id}-hi22')
             continue
 
         o2w = env.get_obj_pose(obj_name)
@@ -91,11 +94,13 @@ def gen(cfg: DictConfig, scene_def):
         collision_free_mask = env.grasp_collision_mask(deepcopy(grasps))  # type: ignore
         grasps = grasps[collision_free_mask]  # type: ignore
         if len(grasps) == 0:
+            print(f'{obj_id}-hi23')
             continue
 
         if len(grasps) >= 1500:
             idx = np.random.randint(len(grasps), size=1500)
             grasps = grasps[idx]  # type: ignore
+            print(f'{obj_id}-hi24')
 
         stable_grasp_mask = env.grasp_stable_mask(
             deepcopy(grasps), deepcopy(scene_def["env_state"]["state"])
@@ -103,6 +108,7 @@ def gen(cfg: DictConfig, scene_def):
         grasps = grasps[stable_grasp_mask]  # type: ignore
 
         if len(grasps) == 0:
+            print(f'{obj_id}-hi25')
             continue
 
         valid_grasps.append(
@@ -138,16 +144,20 @@ def main(cfg: DictConfig):
         iteration += 1
         scene_dict = gen_stable_scene(deepcopy(cfg))
         if scene_dict is None:
+            print(f'{iteration}-hi1')
             continue
 
         if scene_dict is None:
+            print(f'{iteration}-hi2')
             continue
         valid_grasps = gen(deepcopy(cfg), scene_dict)
         if valid_grasps is None:
+            print(f'{iteration}-hi3')
             continue
         scene_hash = generate_unique_hash()
 
         file_path = os.path.join(output_dir, f"clutter_scene_{scene_hash}")
+        print(f'{iteration}-hi4')
 
         np.savez(
             file_path,

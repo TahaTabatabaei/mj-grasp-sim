@@ -53,7 +53,9 @@ def main(cfg: DictConfig):
         images, extrinsics, intrinsics, image_masks = scan(
             deepcopy(cfg), deepcopy(scene_dict)
         )
-        output_file_path = os.path.join(output_dir, file)
+        # output_file_path = os.path.join(output_dir, file)
+        print(f"Rendering scene from {file}...")
+        output_file_path = os.path.join(output_dir, f"render_{file}")
         np.savez(
             output_file_path,
             os.path.join(output_dir, file),
