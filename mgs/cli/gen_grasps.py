@@ -35,12 +35,12 @@ from mgs.util.file import generate_unique_hash
 def main(cfg: DictConfig):
     gripper = get_gripper(cfg.gripper)
     obj = get_object(cfg.object_id)
-    print('0')
+    # print('0')
     sampler = AntipodalGraspGenerator(obj)
     env = GravitylessObjectGrasping(gripper, obj)
     output_dir = os.getenv("MGS_OUTPUT_DIR")
 
-    print('1')
+    # print('1')
     if cfg.stats == True:
         start_time = time.time()
         grasps = sampler.generate_grasps(cfg.num_grasps)
@@ -54,7 +54,7 @@ def main(cfg: DictConfig):
         pos_delta = pos_delta[evaluations]
         rot_delta = rot_delta[evaluations]
 
-        print('2')
+        # print('2')
 
         stats = {
             "name": obj.object_id,
@@ -91,32 +91,32 @@ def main(cfg: DictConfig):
 
         return
 
-    print('1.5')
+    # print('1.5')
     # find out whether grasps will be computed in given time (estimates from prior stats)
-    # is_graspable_res = is_graspable(cfg.gripper, cfg.object_id, eta=cfg.gripper.eta)
-    # if not is_graspable_res:
-    #     print('1.7')
-    #     return  # we are done
+    is_graspable_res = is_graspable(cfg.gripper, cfg.object_id, eta=cfg.gripper.eta)
+    if not is_graspable_res:
+        # print('1.7')
+        return  # we are done
 
     num_successful_grasps = 0
     all_successful_grasps = []
-    print('3')
+    # print('3')
 
     while num_successful_grasps < cfg.num_grasps:
         grasps = sampler.generate_grasps(
             max([(cfg.num_grasps - num_successful_grasps) * 2, 0])
         )
-        print(len(grasps))
+        # print(len(grasps))
         evaluations = env.grasp_stability_evaluation(deepcopy(grasps))
         valid_grasps = grasps.to_vec(layout="pq", type="wxyz")[evaluations]
-        print(evaluations)
+        # print(evaluations)
         num_successful_grasps += len(valid_grasps)
         all_successful_grasps.append(valid_grasps)
 
     all_successful_grasps = np.concatenate(all_successful_grasps, axis=0)[
         : cfg.num_grasps
     ]
-    print('3.5')
+    # print('3.5')
 
     transform = gripper.base_to_contact_transform().to_vec(layout="pq", type="wxyz")
     state_dict = {
@@ -125,7 +125,7 @@ def main(cfg: DictConfig):
         "object_id": cfg.object_id,
         "gripper": cfg.gripper.name,
     }
-    print('4')
+    # print('4')
     path = os.path.join(
         output_dir if output_dir is not None else ".",
         f"{cfg.object_id}_{obj.name}.npz",

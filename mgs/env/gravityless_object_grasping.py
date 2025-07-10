@@ -26,6 +26,7 @@ from mgs.gripper.base import MjShakableOpenCloseGripper
 from mgs.obj.base import CollisionMeshObject
 from mgs.util.geo.transforms import SE3Pose
 
+# mine for visualization purposes
 XML = r"""
 <mujoco>
 
@@ -57,6 +58,29 @@ XML = r"""
     {object}
 </mujoco>
 """
+
+# the default XML
+# XML = r"""
+# <mujoco>
+#     <compiler angle="radian" autolimits="true" />
+#     <option integrator="implicitfast" timestep="0.001"/>
+#     <compiler discardvisual="false"/>
+#     <option noslip_iterations="1"> </option>
+#     <option><flag multiccd="enable"/> </option>
+#     <option cone="elliptic" impratio="3" timestep="0.001" noslip_iterations="2" noslip_tolerance="1e-8" tolerance="1e-8"/>
+#     <option gravity="0 0 0" />
+#     {gripper}
+#     <worldbody>
+#         <light name="light:top" pos="0 0 0.3"/>
+#         <light name="light:right" pos="0.3 0 0"/>
+#         <light name="light:left" pos="-0.3 0 0"/>
+#         <body name="body:ground" pos="0.0 0 -1.0">
+#            <geom name="geom:ground" pos="0 0 0" rgba="1.0 1.0 1.0 0.0" size="1.0 1.0 0.02" type="box" density="500"/>
+#         </body>
+#     </worldbody>
+#     {object}
+# </mujoco>
+# """
 
 
 class GravitylessObjectGrasping(MjSimulation):
@@ -109,17 +133,21 @@ class GravitylessObjectGrasping(MjSimulation):
             mujoco.mj_forward(self.model, self.data)  # type: ignore
             self.gripper.open_gripper(self)
             # viewer.sync()
+            # print("Setting gripper to pose:", pose_processed)
+
             self.gripper.set_pose(self, pose_processed)
             if self.check_contact():
                 results.append(False)
                 positional_drift.append(0.0)
                 rotational_drift.append(0.0)
+                print("Contact before closing gripper, skipping grasp")
                 continue
             self.gripper.close_gripper_at(self, pose_processed)
             if not self.check_contact():
                 results.append(False)
                 positional_drift.append(0.0)
                 rotational_drift.append(0.0)
+                print("No contact after closing gripper, skipping grasp")
                 continue
 
             # check for object movement
@@ -138,11 +166,13 @@ class GravitylessObjectGrasping(MjSimulation):
             # viewer.sync()
             if not self.check_contact():
                 results.append(False)
+                print("Contact lost after moving back, skipping grasp")
                 continue
             self.gripper.move_right(self, pose_processed)
             # viewer.sync()
             if not self.check_contact():
                 results.append(False)
+                print("Contact lost after moving right, skipping grasp")
                 continue
             self.gripper.move_left(self, pose_processed)
             # viewer.sync()
@@ -150,6 +180,7 @@ class GravitylessObjectGrasping(MjSimulation):
                 results.append(True)
             else:
                 results.append(False)
+                print("Contact lost after moving left, skipping grasp")
 
         if stats:
             return np.array(results), np.array(positional_drift), np.array(rotational_drift)  # type: ignore
@@ -159,25 +190,30 @@ class GravitylessObjectGrasping(MjSimulation):
             & (np.array(rotational_drift) < 25.0)
         )
 
-    def find_contacts(self, grasp, viewer=False):
-        if viewer:
-            v_resource = mujoco.viewer.launch_passive(self.model, self.data)
-            viewer = v_resource.__enter__()
-        else:
-            viewer = None
+    def find_contacts(self, grasp: SE3Pose, viewer=False):
 
         grasp = deepcopy(grasp)
         mujoco.mj_resetData(self.model, self.data)  # type: ignore
         mujoco.mj_forward(self.model, self.data)  # type: ignore
         self.gripper.open_gripper(self)
-        self.gripper.set_pose(self, grasp)
+        b2c = self.gripper.base_to_contact_transform()
+        pose_processed = grasp @ b2c
+        self.gripper.set_pose(self, pose_processed)
+        if viewer:
+            v_resource = mujoco.viewer.launch_passive(self.model, self.data)
+            viewer = v_resource.__enter__()
+        else:
+            viewer = None
         if self.check_contact():
+            print("hi-1")
             return None, None
-        self.gripper.close_gripper_at(self, grasp)
+        self.gripper.close_gripper_at(self, pose_processed)
         if not self.check_contact():
+            print("hi-2")
             return None, None
         constacts, which_finger = self.get_panda_contact()
         if constacts is None:
+            print("hi-3")
             return None, None
 
         # since the object is likely to move during the grasp, we need to transform the contacts to object frame
@@ -240,6 +276,29 @@ class GravitylessObjectGrasping(MjSimulation):
         if not contact_positions:
             return None, None
         return np.stack(contact_positions, axis=0), which_finger
+    
+    # def get_robotiq_contact(self):
+
+    #     robotiq_geom_left = [
+    #         self.model.geom("lf_pad{}".format(i)).id for i in range(1, 3)
+    #     ]
+        
+        
+    #     contact_positions = []
+    #     which_finger = []
+
+    #     for i in contact_pair in enumerate(self.data.contact.geom):
+    #         if (
+    #             (contact_pair[0] in robotiq_geom_id)
+    #             and (contact_pair[1] not in robotiq_geom_id)
+    #         ) or (
+    #             (contact_pair[1] in robotiq_geom_id)
+    #             and (contact_pair[0] not in panda_gerobotiq_geom_idom_id)
+    #         ):
+                
+
+
+
 
     def check_contact(self):
         """
@@ -249,6 +308,8 @@ class GravitylessObjectGrasping(MjSimulation):
         """
         table_id = self.model.geom("geom:ground").id
         for contact_pairs in self.data.contact.geom:
+            # g1, g2 = contact_pairs
+            # print("Contact between:", self.model.geom(g1), "and", self.model.geom(g2))
             if (contact_pairs[0] < table_id and contact_pairs[1] > table_id) or (
                 contact_pairs[0] > table_id and contact_pairs[1] < table_id
             ):
