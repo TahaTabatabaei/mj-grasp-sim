@@ -141,3 +141,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# custom
+asset/mj-objects/*
+mymgs/MGS_OUTPUT_DIR/
+mymgs/MGS_INPUT_DIR/
+mymgs/robotiq_2f_85-default
