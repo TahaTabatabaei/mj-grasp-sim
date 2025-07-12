@@ -93,10 +93,11 @@ def main(cfg: DictConfig):
 
     # print('1.5')
     # find out whether grasps will be computed in given time (estimates from prior stats)
-    is_graspable_res = is_graspable(cfg.gripper, cfg.object_id, eta=cfg.gripper.eta)
-    if not is_graspable_res:
-        # print('1.7')
-        return  # we are done
+    # for a custom object, it is always false, that is why I am commenting this out
+    # is_graspable_res = is_graspable(cfg.gripper, cfg.object_id, eta=cfg.gripper.eta)
+    # if not is_graspable_res:
+    #     # print('1.7')
+    #     return  # we are done
 
     num_successful_grasps = 0
     all_successful_grasps = []
