@@ -236,6 +236,24 @@ class GravitylessObjectGrasping(MjSimulation):
         As the geoms are ordered accordingly to the XML. We can simply
         check for contacts between obj geoms and gripper geoms by ids
         relative to the table (which is between obj and gripper by construction)
+
+        This function checks whether a contact has occurred between the gripper and the object 
+        by inspecting geom IDs in MuJoCo’s contact buffer. In MuJoCo, each geometry element 
+        ("geom") involved in collision is assigned an integer ID based on the order of appearance 
+        in the XML model. Contacts are stored as pairs of geom IDs in `data.contact.geom`.
+
+        By construction, the model XML inserts the gripper first, then the table (named "geom:ground"), 
+        and finally the object. As a result, gripper geoms have IDs lower than the table’s ID, 
+        while object geoms have IDs higher than the table’s ID.
+
+        This ordering allows a simple numeric test: if a contact involves one geom with an ID 
+        less than the table and the other with an ID greater than the table, the contact must 
+        be between the gripper and the object. All other contacts (e.g., gripper-table or 
+        object-table) will fall outside this pattern.
+
+        Note that this method relies on the maintained order of geoms in the XML. 
+        Any changes to the model structure that alter the relative position of the table, 
+        gripper, or object in the XML may invalidate this logic.
         """
         table_id = self.model.geom("geom:ground").id
         for contact_pairs in self.data.contact.geom:
