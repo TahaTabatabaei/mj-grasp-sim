@@ -67,6 +67,8 @@ def setup(cfg, gripper):
         obj_id=myObj.object_id,
     )
 
+    print(f'loaded {len(grasps)} grasps')
+
     scene = GravitylessObjectGrasping(gripper, myObj)
 
     if cfg.grasp_id == "all":
