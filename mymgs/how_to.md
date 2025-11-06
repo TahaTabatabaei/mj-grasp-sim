@@ -2,7 +2,8 @@
 
 1. Add a folder with the desired name in the YCB dataset folder
     1. Place your original .obj file there. Becareful that `mj-grasp-sim` treat v values with meter unit. if your object size is for example 5cm, you should write it like:\
-    `v 0.05 0.05 0.05`
+    `v 0.05 0.05 0.05`\
+    Also, add `vt` values if your file missing them and add their respective values to `f` values.
     
     2. Place the .mtl and it's respective .png texture in the same folder.
 
@@ -27,7 +28,7 @@ This is a sample:
     ```
 
 3. You also need a `composite.obj` file.\
-    ***I did this manually just for test purposs, but I highly recommend    you to use tools like Blender. It is really time consuming and bug  prone to do it manually for complex objects***
+    ***I did this manually just for test purposs, but I highly recommend you to use tools like Blender. It is really time consuming and bug  prone to do it manually for complex objects***
     1. Make a new blank file with the .obj extention.
     2. From the `textured.obj`, copy everything and past it insidde the composite file.
     3. Inside the composite file, one line before\
@@ -46,7 +47,7 @@ This is a sample:
     ```
     4. At the end of the file, add this in a new line:\
     `o collision`
-    5. Now copy the contents of the `decompose.obj` generate by the from where is starts the `v` vaules till the end. Do not copy things like:
+    5. Now copy the contents of the `decompose.obj` generate by the v-hacd from where it starts with the `v` vaules till the end. Do not copy things like:
     ```
     mtllib decomp.mtl
     o textured000
